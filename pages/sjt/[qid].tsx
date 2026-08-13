@@ -39,12 +39,13 @@ export default function ScenarioPage() {
 
   useEffect(() => {
     if (!scenario) return;
+    const currentScenario = scenario;
 
     // Attempt to reuse a persisted display order, but validate it against the current options.
-    const key = `order_${scenario.id}`;
+    const key = `order_${currentScenario.id}`;
     const existing = localStorage.getItem(key);
 
-    const optionIds = scenario.options.map((o) => o.id);
+    const optionIds = currentScenario.options.map((o) => o.id);
     if (existing) {
       try {
         const parsed: string[] = JSON.parse(existing);
@@ -92,10 +93,10 @@ export default function ScenarioPage() {
   }, [scenario]);
 
   if (!scenario) return <div>Loading...</div>;
-
+  const currentScenario = scenario;
   function onSubmit() {
     if (!selected) return alert("Please select an option");
-    const respKey = `resp_${scenario.id}`;
+    const respKey = `resp_${currentScenario.id}`;
     const payload = {
       answerId: selected,
       comment,
@@ -108,7 +109,7 @@ export default function ScenarioPage() {
     setAnswered(true);
 
     // proceed to next or completion
-    const nextOrder = scenario.order + 1;
+    const nextOrder = currentScenario.order + 1;
     const next = scenarios.find((s) => s.order === nextOrder);
     setTimeout(() => {
       if (next) router.push(`/sjt/${next.id.toLowerCase()}`);
@@ -117,7 +118,7 @@ export default function ScenarioPage() {
   }
 
   function onAutosave() {
-    const respKey = `resp_${scenario.id}`;
+    const respKey = `resp_${currentScenario.id}`;
     localStorage.setItem(
       respKey,
       JSON.stringify({ answerId: selected, comment, submitted: answered }),
