@@ -1,4 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { FiAlertTriangle, FiClock } from "react-icons/fi";
+import { useTheme } from "../contexts/ThemeContext";
+import { useLanguage } from "../contexts/LanguageContext";
 
 export default function Timer({
   seconds,
@@ -10,21 +13,40 @@ export default function Timer({
   warningSeconds?: number;
 }) {
   const [remaining, setRemaining] = useState(seconds);
+  const [showWarningAlert, setShowWarningAlert] = useState(false);
+  const { isDarkMode } = useTheme();
+  const { t } = useLanguage();
+
+  // Keep the latest onExpire without making the countdown effect depend on
+  // it, since the parent passes a new function on every render.
+  const onExpireRef = useRef(onExpire);
+  useEffect(() => {
+    onExpireRef.current = onExpire;
+  }, [onExpire]);
 
   useEffect(() => {
-    setRemaining(seconds); // Reset timer when scenario changes
-    const t = setInterval(() => {
+    setRemaining(seconds); // Reset timer only when the scenario's duration changes
+    const interval = setInterval(() => {
       setRemaining((r) => {
         if (r <= 1) {
-          clearInterval(t);
-          onExpire();
+          clearInterval(interval);
+          onExpireRef.current();
           return 0;
         }
         return r - 1;
       });
     }, 1000);
-    return () => clearInterval(t);
-  }, [onExpire, seconds]);
+    return () => clearInterval(interval);
+  }, [seconds]);
+
+  useEffect(() => {
+    // Fire once, exactly when the countdown crosses into the warning window.
+    if (remaining === warningSeconds && warningSeconds > 0) {
+      setShowWarningAlert(true);
+      const hide = setTimeout(() => setShowWarningAlert(false), 5000);
+      return () => clearTimeout(hide);
+    }
+  }, [remaining, warningSeconds]);
 
   const mins = Math.floor(remaining / 60)
     .toString()
@@ -36,6 +58,14 @@ export default function Timer({
 
   return (
     <div className="flex flex-col items-end gap-2">
+      {showWarningAlert && (
+        <div
+          role="alert"
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-500/95 text-white text-sm font-semibold shadow-lg backdrop-blur animate-pulse"
+        >
+          <FiAlertTriangle className="shrink-0" /> {t("timer.warningAlert")}
+        </div>
+      )}
       <div
         className={`text-2xl font-bold font-mono transition-all ${
           critical
@@ -59,7 +89,11 @@ export default function Timer({
           style={{ width: `${percentRemaining}%` }}
         ></div>
       </div>
-      <div className="text-xs text-gray-400">⏱️ Time left</div>
+      <div
+        className={`flex items-center gap-1 text-xs ${isDarkMode ? "text-gray-400" : "text-black"}`}
+      >
+        <FiClock className="shrink-0" /> {t("timer.timeLeft")}
+      </div>
     </div>
   );
 }

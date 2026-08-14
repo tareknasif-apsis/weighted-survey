@@ -1,7 +1,12 @@
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { FiCheck, FiLock, FiMessageSquare, FiTarget } from "react-icons/fi";
 import scenarios from "../../data/scenarios";
 import Timer from "../../components/Timer";
+import { useTheme } from "../../contexts/ThemeContext";
+import { useLanguage } from "../../contexts/LanguageContext";
+import { getCurrentCandidate } from "../../lib/candidateAuth";
+import { upsertResponse } from "../../lib/adminStore";
 
 function shuffle<T>(arr: T[]) {
   const a = [...arr];
@@ -22,20 +27,28 @@ export default function ScenarioPage() {
     );
   }, [qid]);
 
-  const [lang, setLang] = useState<"en" | "ms">("en");
+  const { isDarkMode } = useTheme();
+  const { lang, t } = useLanguage();
   const [order, setOrder] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [comment, setComment] = useState("");
   const [answered, setAnswered] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const displayedAtRef = useRef<string>(new Date().toISOString());
+  const tabChangesRef = useRef(0);
 
   useEffect(() => {
-    const l = localStorage.getItem("mnext_language");
-    if (l === "en" || l === "ms") setLang(l);
+    if (!getCurrentCandidate()) router.replace("/login");
+  }, [router]);
 
-    const theme = localStorage.getItem("mnext_theme");
-    setIsDarkMode(theme !== "light");
-  }, []);
+  useEffect(() => {
+    displayedAtRef.current = new Date().toISOString();
+    tabChangesRef.current = 0;
+    function onVisibilityChange() {
+      if (document.visibilityState === "hidden") tabChangesRef.current += 1;
+    }
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, [scenario?.id]);
 
   useEffect(() => {
     if (!scenario) return;
@@ -92,21 +105,41 @@ export default function ScenarioPage() {
     }
   }, [scenario]);
 
-  if (!scenario) return <div>Loading...</div>;
+  if (!scenario) return <div>{t("qid.loading")}</div>;
   const currentScenario = scenario;
   function onSubmit() {
-    if (!selected) return alert("Please select an option");
+    if (!selected) return alert(t("qid.pleaseSelect"));
     const respKey = `resp_${currentScenario.id}`;
+    const submittedAt = new Date().toISOString();
     const payload = {
       answerId: selected,
       comment,
-      submittedAt: new Date().toISOString(),
+      submittedAt,
     };
     localStorage.setItem(
       respKey,
       JSON.stringify({ ...payload, submitted: true }),
     );
     setAnswered(true);
+
+    const candidate = getCurrentCandidate();
+    if (candidate) {
+      const responseTimeSec = Math.max(
+        0,
+        Math.round((new Date(submittedAt).getTime() - new Date(displayedAtRef.current).getTime()) / 1000),
+      );
+      upsertResponse({
+        candidateEmail: candidate.email,
+        scenarioId: currentScenario.id,
+        answerId: selected,
+        comment,
+        responseTimeSec,
+        displayedAt: displayedAtRef.current,
+        submittedAt,
+        tabChanges: tabChangesRef.current,
+        reconnects: 0,
+      });
+    }
 
     // proceed to next or completion
     const nextOrder = currentScenario.order + 1;
@@ -125,7 +158,7 @@ export default function ScenarioPage() {
     );
   }
 
-  if (!scenario) return <div>Loading...</div>;
+  if (!scenario) return <div>{t("qid.loading")}</div>;
 
   const progressPercent = (scenario.order / 8) * 100;
 
@@ -137,9 +170,10 @@ export default function ScenarioPage() {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <div className="text-sm font-semibold">
-            Scenario {scenario.order} of 8
+            {t("qid.scenarioOf", { current: scenario.order, total: 8 })}
           </div>
           <Timer
+            key={scenario.id}
             seconds={scenario.timer_seconds ?? 240}
             warningSeconds={scenario.warning_seconds ?? 60}
             onExpire={() => {
@@ -181,7 +215,9 @@ export default function ScenarioPage() {
                 : "bg-blue-500/25 text-blue-700"
             }`}
           >
-            🎯 Scenario
+            <span className="inline-flex items-center gap-1.5">
+              <FiTarget /> {t("qid.scenario")}
+            </span>
           </span>
         </div>
         <div className="text-lg leading-relaxed">
@@ -193,7 +229,9 @@ export default function ScenarioPage() {
 
       {/* Options Section */}
       <div>
-        <h3 className="font-bold text-lg mb-4">Choose Your Best Response</h3>
+        <h3 className="font-bold text-lg mb-4">
+          {t("qid.chooseBestResponse")}
+        </h3>
         <div className="space-y-3">
           {order.map((optId, idx) => {
             const opt = scenario.options.find((o) => o.id === optId);
@@ -237,7 +275,7 @@ export default function ScenarioPage() {
                     />
                     <div className="flex-1">
                       <div
-                        className={`text-sm font-semibold mb-1 flex items-center gap-2 ${isDarkMode ? "text-gray-100" : "text-gray-800"}`}
+                        className={`text-sm font-semibold mb-1 flex items-center gap-2 ${isDarkMode ? "text-gray-100" : "text-black"}`}
                       >
                         <span
                           className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${
@@ -266,9 +304,9 @@ export default function ScenarioPage() {
       {/* Comments Section */}
       <div>
         <label
-          className={`block text-sm font-semibold mb-2 ${isDarkMode ? "text-gray-100" : "text-gray-800"}`}
+          className={`flex items-center gap-1.5 text-sm font-semibold mb-2 ${isDarkMode ? "text-gray-100" : "text-black"}`}
         >
-          💬 Additional Comments (Optional, max 300 chars)
+          <FiMessageSquare /> {t("qid.additionalComments")}
         </label>
         <textarea
           maxLength={300}
@@ -276,15 +314,15 @@ export default function ScenarioPage() {
           onChange={(e) => setComment(e.target.value)}
           onBlur={onAutosave}
           rows={3}
-          placeholder="Share your reasoning or additional thoughts..."
+          placeholder={t("qid.commentPlaceholder")}
           className={`w-full backdrop-blur border rounded-lg p-3 transition-all ${
             isDarkMode
               ? "bg-slate-700/30 border-slate-600/30 text-gray-100 placeholder-gray-500 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30"
-              : "bg-blue-200/20 border-blue-300/40 text-gray-800 placeholder-gray-600 focus:border-blue-400/60 focus:ring-1 focus:ring-blue-400/30"
+              : "bg-blue-200/20 border-blue-300/40 text-black placeholder-gray-600 focus:border-blue-400/60 focus:ring-1 focus:ring-blue-400/30"
           }`}
         />
         <div
-          className={`text-xs mt-1 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+          className={`text-xs mt-1 ${isDarkMode ? "text-gray-400" : "text-black"}`}
         >
           {comment.length}/300
         </div>
@@ -293,9 +331,9 @@ export default function ScenarioPage() {
       {/* Action Buttons */}
       <div className="flex gap-3">
         <div
-          className={`flex-1 text-xs flex items-center ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+          className={`flex-1 text-xs flex items-center gap-1.5 ${isDarkMode ? "text-gray-400" : "text-black"}`}
         >
-          🔒 No backtracking once submitted
+          <FiLock /> {t("qid.noBacktracking")}
         </div>
         <button
           onClick={onSubmit}
@@ -308,11 +346,15 @@ export default function ScenarioPage() {
                 : "bg-slate-700/40 text-gray-500 cursor-not-allowed"
           }`}
         >
-          {answered
-            ? "✓ Submitted"
-            : selected
-              ? "Submit & Next"
-              : "Select an option"}
+          {answered ? (
+            <span className="inline-flex items-center gap-1.5">
+              <FiCheck /> {t("qid.submitted")}
+            </span>
+          ) : selected ? (
+            t("qid.submitAndNext")
+          ) : (
+            t("qid.selectOption")
+          )}
         </button>
       </div>
     </div>

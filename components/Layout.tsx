@@ -1,6 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useTheme } from "../contexts/ThemeContext";
+import { useLanguage } from "../contexts/LanguageContext";
+import ThemeSwitch from "./ThemeSwitch";
+import LanguageSwitch from "./LanguageSwitch";
 
 // Malaysian airport and aircraft images
 const AIRPORT_IMAGES = [
@@ -15,20 +19,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
-
-  useEffect(() => {
-    // Load theme from localStorage
-    const savedTheme = localStorage.getItem("mnext_theme");
-    if (savedTheme !== null) {
-      setIsDarkMode(savedTheme === "dark");
-    }
-  }, []);
-
-  useEffect(() => {
-    // Save theme to localStorage
-    localStorage.setItem("mnext_theme", isDarkMode ? "dark" : "light");
-  }, [isDarkMode]);
+  const { isDarkMode } = useTheme();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -84,28 +76,10 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
         }}
       ></div>
 
-      {/* Theme Switcher - Top Right Outside Box */}
-      <div className="absolute top-4 right-4 flex gap-2 z-30">
-        <button
-          onClick={() => setIsDarkMode(true)}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-            isDarkMode
-              ? "bg-orange-500 text-white shadow-lg scale-105"
-              : "bg-white/20 text-gray-700 hover:bg-white/30 border border-gray-300"
-          }`}
-        >
-          🌙 Dark
-        </button>
-        <button
-          onClick={() => setIsDarkMode(false)}
-          className={`px-4 py-2 rounded-lg font-semibold transition-all ${
-            !isDarkMode
-              ? "bg-blue-500 text-white shadow-lg scale-105"
-              : "bg-black/20 text-white hover:bg-black/30 border border-white/30"
-          }`}
-        >
-          ☀️ Light
-        </button>
+      {/* Theme & Language Switchers - Top Right Outside Box */}
+      <div className="absolute top-4 right-4 flex items-center gap-3 z-30">
+        <LanguageSwitch />
+        <ThemeSwitch />
       </div>
 
       <div className={`max-w-xl mx-auto relative z-10 mt-10 mb-10`}>
@@ -124,14 +98,14 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({
                   : "from-blue-600 via-orange-500 to-blue-600"
               }`}
             >
-              MNext Challenge
+              {t("layout.title")}
             </h1>
             <p
               className={`text-sm mt-2 font-medium ${
                 isDarkMode ? "text-white/85" : "text-gray-800"
               }`}
             >
-              Master situational judgment to unlock your potential
+              {t("layout.subtitle")}
             </p>
           </div>
         </header>

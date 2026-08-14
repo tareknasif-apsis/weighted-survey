@@ -1,24 +1,31 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { FiCheck, FiClock, FiGlobe } from "react-icons/fi";
+import { GiConsoleController } from "react-icons/gi";
+import { MdBalance, MdRocketLaunch } from "react-icons/md";
 import scenarios from "../../data/scenarios";
+import { useTheme } from "../../contexts/ThemeContext";
+import { useLanguage } from "../../contexts/LanguageContext";
+import { getCurrentCandidate } from "../../lib/candidateAuth";
+import { getDeclaration, markDeclarationAccepted, markSjtStarted } from "../../lib/adminStore";
 
 export default function Start() {
   const router = useRouter();
-  const [lang, setLang] = useState<"en" | "ms">("en");
+  const { isDarkMode } = useTheme();
+  const { lang, setLang, t } = useLanguage();
   const [accepted, setAccepted] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem("mnext_language");
-    if (stored === "en" || stored === "ms") setLang(stored);
-
-    const theme = localStorage.getItem("mnext_theme");
-    setIsDarkMode(theme !== "light");
-  }, []);
+    if (!getCurrentCandidate()) router.replace("/login");
+  }, [router]);
 
   function onStart() {
-    if (!accepted) return alert("Please accept the declaration");
-    localStorage.setItem("mnext_language", lang);
+    if (!accepted) return alert(t("start.pleaseAccept"));
+    const candidate = getCurrentCandidate();
+    if (!candidate) {
+      router.replace("/login");
+      return;
+    }
 
     // Clear old responses and orders from previous attempts
     scenarios.forEach((scenario) => {
@@ -27,6 +34,8 @@ export default function Start() {
     });
 
     localStorage.setItem("mnext_attempt_started", new Date().toISOString());
+    markDeclarationAccepted(candidate.email, getDeclaration().version);
+    markSjtStarted(candidate.email);
     const first = scenarios && scenarios.length ? scenarios[0].id : "Q01";
     router.push(`/sjt/${first.toLowerCase()}`);
   }
@@ -42,23 +51,24 @@ export default function Start() {
         }`}
       >
         <div className="text-center">
-          <div className="text-3xl mb-2">🎮</div>
+          <div className={`text-3xl mb-2 flex justify-center ${isDarkMode ? "text-white" : "text-black"}`}>
+            <GiConsoleController />
+          </div>
           <h2
-            className={`text-xl font-bold mb-2 ${isDarkMode ? "text-white" : "text-gray-800"}`}
+            className={`text-xl font-bold mb-2 ${isDarkMode ? "text-white" : "text-black"}`}
           >
-            Ready for the Challenge?
+            {t("start.readyTitle")}
           </h2>
           <p
-            className={`text-sm ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
+            className={`text-sm ${isDarkMode ? "text-gray-300" : "text-black"}`}
           >
-            You're about to face 8 scenarios that will test your judgment and
-            decision-making skills. Stay focused and trust your instincts!
+            {t("start.readyDesc")}
           </p>
         </div>
       </div>
 
       {/* Language Selection */}
-      <div
+      {/* <div
         className={`backdrop-blur border p-5 rounded-xl ${
           isDarkMode
             ? "bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border-blue-500/30"
@@ -66,9 +76,9 @@ export default function Start() {
         }`}
       >
         <h3
-          className={`font-bold text-lg mb-4 ${isDarkMode ? "text-white" : "text-gray-800"}`}
+          className={`font-bold text-lg mb-4 ${isDarkMode ? "text-white" : "text-black"}`}
         >
-          Select Your Language / Pilih Bahasa
+          {t("start.selectLanguage")}
         </h3>
         <div className="grid grid-cols-2 gap-3">
           <button
@@ -78,10 +88,10 @@ export default function Start() {
                 ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-2 border-blue-300 shadow-lg shadow-blue-500/30"
                 : isDarkMode
                   ? "bg-slate-700/40 text-gray-300 border-2 border-slate-600/30 hover:border-blue-500/30"
-                  : "bg-blue-200/30 text-gray-800 border-2 border-blue-300/30 hover:border-blue-400/60"
+                  : "bg-blue-200/30 text-black border-2 border-blue-300/30 hover:border-blue-400/60"
             }`}
           >
-            🇬🇧 English
+            🇬🇧 {t("start.english")}
           </button>
           <button
             onClick={() => setLang("ms")}
@@ -90,13 +100,13 @@ export default function Start() {
                 ? "bg-gradient-to-r from-orange-500 to-red-500 text-white border-2 border-orange-300 shadow-lg shadow-orange-500/30"
                 : isDarkMode
                   ? "bg-slate-700/40 text-gray-300 border-2 border-slate-600/30 hover:border-orange-500/30"
-                  : "bg-orange-200/30 text-gray-800 border-2 border-orange-300/30 hover:border-orange-400/60"
+                  : "bg-orange-200/30 text-black border-2 border-orange-300/30 hover:border-orange-400/60"
             }`}
           >
-            🇲🇾 Bahasa Melayu
+            🇲🇾 {t("start.bahasaMelayu")}
           </button>
         </div>
-      </div>
+      </div> */}
 
       {/* Declaration */}
       <div
@@ -107,27 +117,28 @@ export default function Start() {
         }`}
       >
         <div className="flex items-start gap-3 mb-4">
-          <div className="text-2xl mt-1">⚖️</div>
+          <div className={`text-2xl mt-1 ${isDarkMode ? "text-white" : "text-black"}`}>
+            <MdBalance />
+          </div>
           <div>
             <h3
-              className={`font-bold text-lg ${isDarkMode ? "text-white" : "text-gray-800"}`}
+              className={`font-bold text-lg ${isDarkMode ? "text-white" : "text-black"}`}
             >
-              Integrity Declaration
+              {t("start.declarationTitle")}
             </h3>
             <p
-              className={`text-xs mt-1 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+              className={`text-xs mt-1 ${isDarkMode ? "text-gray-400" : "text-black"}`}
             >
-              Please confirm before proceeding
+              {t("start.declarationSubtitle")}
             </p>
           </div>
         </div>
         <p
-          className={`text-sm mb-4 leading-relaxed ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}
+          className={`text-sm mb-4 leading-relaxed ${isDarkMode ? "text-gray-300" : "text-black"}`}
         >
-          I confirm that I will complete the MNext assessments independently and
-          will not use generative AI tools, chatbots, another person, or any
-          other external source to assist me. I understand that honesty is
-          essential for accurate assessment.
+          {lang === "en"
+            ? getDeclaration().text_en || t("start.declarationText")
+            : getDeclaration().text_ms || t("start.declarationText")}
         </p>
         <label className="flex items-center gap-3 cursor-pointer group">
           <input
@@ -143,7 +154,7 @@ export default function Start() {
                 : "text-amber-700 group-hover:text-amber-600"
             }`}
           >
-            I agree to this declaration
+            {t("start.agree")}
           </span>
         </label>
       </div>
@@ -160,7 +171,15 @@ export default function Start() {
               : "bg-blue-200/30 text-gray-500 cursor-not-allowed"
         }`}
       >
-        {accepted ? "🚀 Begin the Challenge" : "✓ Accept to Continue"}
+        {accepted ? (
+          <span className="inline-flex items-center gap-2">
+            <MdRocketLaunch /> {t("start.beginChallenge")}
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-2">
+            <FiCheck /> {t("start.acceptToContinue")}
+          </span>
+        )}
       </button>
 
       {/* Challenge Info */}
@@ -173,8 +192,8 @@ export default function Start() {
           }`}
         >
           <div className="text-2xl mb-1">8</div>
-          <div className={isDarkMode ? "text-gray-400" : "text-gray-800"}>
-            Scenarios
+          <div className={isDarkMode ? "text-gray-400" : "text-black"}>
+            {t("start.scenarios")}
           </div>
         </div>
         <div
@@ -184,9 +203,11 @@ export default function Start() {
               : "bg-blue-300/30 border-blue-400/40"
           }`}
         >
-          <div className="text-2xl mb-1">⏱️</div>
-          <div className={isDarkMode ? "text-gray-400" : "text-gray-800"}>
-            Timed
+          <div className={`text-2xl mb-1 flex justify-center ${isDarkMode ? "text-gray-300" : "text-black"}`}>
+            <FiClock />
+          </div>
+          <div className={isDarkMode ? "text-gray-400" : "text-black"}>
+            {t("start.timed")}
           </div>
         </div>
         <div
@@ -196,9 +217,11 @@ export default function Start() {
               : "bg-blue-300/30 border-blue-400/40"
           }`}
         >
-          <div className="text-2xl mb-1">🌐</div>
-          <div className={isDarkMode ? "text-gray-400" : "text-gray-800"}>
-            Bilingual
+          <div className={`text-2xl mb-1 flex justify-center ${isDarkMode ? "text-gray-300" : "text-black"}`}>
+            <FiGlobe />
+          </div>
+          <div className={isDarkMode ? "text-gray-400" : "text-black"}>
+            {t("start.bilingual")}
           </div>
         </div>
       </div>
