@@ -5,13 +5,20 @@ import { FiCheckCircle, FiCircle, FiClock } from "react-icons/fi";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { candidateLogout, getCurrentCandidate } from "../lib/candidateAuth";
-import { Candidate, computeStatus, getResponses, responsesFor } from "../lib/adminStore";
+import {
+  Candidate,
+  computeStatus,
+  getResponses,
+  responsesFor,
+} from "../lib/adminStore";
 
 export default function Home() {
   const router = useRouter();
   const { isDarkMode } = useTheme();
   const { t } = useLanguage();
-  const [candidate, setCandidate] = useState<Candidate | null | undefined>(undefined);
+  const [candidate, setCandidate] = useState<Candidate | null | undefined>(
+    undefined,
+  );
   const [answered, setAnswered] = useState(0);
 
   useEffect(() => {
@@ -21,6 +28,7 @@ export default function Home() {
       return;
     }
     setCandidate(c);
+    console.log(c);
     setAnswered(responsesFor(c.email, getResponses()).length);
   }, [router]);
 
@@ -28,7 +36,11 @@ export default function Home() {
 
   const status = computeStatus(candidate, getResponses());
   const sjtDone = !!candidate.sjtCompletedAt || answered >= 8;
-  const sjtHref = sjtDone ? "/sjt/complete" : answered > 0 ? `/sjt/${`Q0${answered + 1}`.slice(-3).toLowerCase()}` : "/sjt/start";
+  const sjtHref = sjtDone
+    ? "/sjt/complete"
+    : answered > 0
+      ? `/sjt/${`Q0${answered + 1}`.slice(-3).toLowerCase()}`
+      : "/sjt/start";
 
   return (
     <div className="space-y-6">
@@ -103,7 +115,8 @@ export default function Home() {
                 >
                   {candidate.thomasStatus === "completed" ? (
                     <>
-                      <FiCheckCircle className="shrink-0" /> {t("home.completed")}
+                      <FiCheckCircle className="shrink-0" />{" "}
+                      {t("home.completed")}
                     </>
                   ) : candidate.thomasStatus === "in_progress" ? (
                     <>
@@ -126,7 +139,9 @@ export default function Home() {
                   {t("home.launch")}
                 </a>
               ) : (
-                <span className="ml-3 text-xs text-gray-500 flex-shrink-0">—</span>
+                <span className="ml-3 text-xs text-gray-500 flex-shrink-0">
+                  —
+                </span>
               )}
             </div>
           </div>
@@ -155,7 +170,8 @@ export default function Home() {
                 >
                   {sjtDone ? (
                     <>
-                      <FiCheckCircle className="shrink-0" /> {t("home.completed")}
+                      <FiCheckCircle className="shrink-0" />{" "}
+                      {t("home.completed")}
                     </>
                   ) : (
                     `${answered}/8 ${t("start.scenarios")}`
@@ -166,7 +182,11 @@ export default function Home() {
                 href={sjtHref}
                 className="ml-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all transform hover:scale-105 flex-shrink-0"
               >
-                {sjtDone ? t("home.completed") : answered > 0 ? t("home.continue") : t("home.start")}
+                {sjtDone
+                  ? t("home.completed")
+                  : answered > 0
+                    ? t("home.continue")
+                    : t("home.start")}
               </Link>
             </div>
           </div>
