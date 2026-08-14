@@ -516,6 +516,61 @@ function seedCandidates(): Candidate[] {
       thomasStatus: "not_started",
       declarationAccepted: false,
     },
+    {
+      email: "gopal.krishnan@example.com",
+      name: "Gopal Krishnan",
+      batch: "Batch 2 - 2026",
+      language: "en",
+      accessToken: "tok_gopal006",
+      createdAt: iso(2),
+      thomasUrl: "https://secure.thomasinternational.net/LoginSelector.aspx",
+      thomasStatus: "not_started",
+      declarationAccepted: false,
+    },
+    {
+      email: "hana.yusof@example.com",
+      name: "Hana Yusof",
+      batch: "Batch 2 - 2026",
+      language: "ms",
+      accessToken: "tok_hana007",
+      createdAt: iso(2),
+      thomasUrl: "https://secure.thomasinternational.net/LoginSelector.aspx",
+      thomasStatus: "not_started",
+      declarationAccepted: false,
+    },
+    {
+      email: "imran.zulkifli@example.com",
+      name: "Imran Zulkifli",
+      batch: "Batch 2 - 2026",
+      language: "en",
+      accessToken: "tok_imran008",
+      createdAt: iso(2),
+      thomasUrl: "https://secure.thomasinternational.net/LoginSelector.aspx",
+      thomasStatus: "not_started",
+      declarationAccepted: false,
+    },
+    {
+      email: "jia.wong@example.com",
+      name: "Jia Wong",
+      batch: "Batch 2 - 2026",
+      language: "en",
+      accessToken: "tok_jia009",
+      createdAt: iso(1),
+      thomasUrl: "https://secure.thomasinternational.net/LoginSelector.aspx",
+      thomasStatus: "not_started",
+      declarationAccepted: false,
+    },
+    {
+      email: "kavitha.selvam@example.com",
+      name: "Kavitha Selvam",
+      batch: "Batch 2 - 2026",
+      language: "ms",
+      accessToken: "tok_kavitha010",
+      createdAt: iso(1),
+      thomasUrl: "https://secure.thomasinternational.net/LoginSelector.aspx",
+      thomasStatus: "not_started",
+      declarationAccepted: false,
+    },
   ];
 }
 
@@ -623,7 +678,18 @@ function write<T>(key: string, value: T) {
 }
 
 export function getCandidates(): Candidate[] {
-  return readOrSeed(KEYS.candidates, seedCandidates);
+  const list = readOrSeed(KEYS.candidates, seedCandidates);
+  // Top up any seed candidates that weren't present yet (e.g. added to the
+  // seed set after this browser already had candidate data cached), without
+  // touching or duplicating existing candidates.
+  const existingEmails = new Set(list.map((c) => c.email.toLowerCase()));
+  const missing = seedCandidates().filter((c) => !existingEmails.has(c.email.toLowerCase()));
+  if (missing.length) {
+    const merged = [...list, ...missing];
+    write(KEYS.candidates, merged);
+    return merged;
+  }
+  return list;
 }
 export function saveCandidates(list: Candidate[]) {
   write(KEYS.candidates, list);
@@ -695,6 +761,40 @@ export function markSjtCompleted(email: string) {
       ? { ...c, sjtCompletedAt: new Date().toISOString() }
       : c,
   );
+  saveCandidates(candidates);
+}
+
+// Wipes a candidate's test data (Thomas status, declaration acceptance, and
+// all MNext Challenge answers) so they can take the assessment again from
+// scratch. Does not remove the candidate record itself.
+export function clearCandidateTestData(email: string) {
+  const candidates = getCandidates().map((c) =>
+    c.email.toLowerCase() === email.toLowerCase()
+      ? {
+          ...c,
+          thomasStatus: "not_started" as ThomasStatus,
+          thomasCompletedAt: undefined,
+          declarationAccepted: false,
+          declarationAcceptedAt: undefined,
+          declarationVersion: undefined,
+          sjtStartedAt: undefined,
+          sjtCompletedAt: undefined,
+        }
+      : c,
+  );
+  saveCandidates(candidates);
+
+  const responses = getResponses().filter((r) => r.candidateEmail.toLowerCase() !== email.toLowerCase());
+  saveResponses(responses);
+
+  const audit = getDeclarationAudit().filter((a) => a.email.toLowerCase() !== email.toLowerCase());
+  saveDeclarationAudit(audit);
+}
+
+// Sets the same Thomas URL on every candidate in one pass.
+export function setThomasUrlForAll(url: string) {
+  const trimmed = url.trim();
+  const candidates = getCandidates().map((c) => ({ ...c, thomasUrl: trimmed || undefined }));
   saveCandidates(candidates);
 }
 

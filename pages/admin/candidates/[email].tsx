@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { FiArrowLeft } from "react-icons/fi";
+import { FiArrowLeft, FiRotateCcw } from "react-icons/fi";
 import { HiSparkles } from "react-icons/hi2";
 import scenarios from "../../../data/scenarios";
 import {
   Candidate,
   SjtResponse,
   ThomasStatus,
+  clearCandidateTestData,
   computeCompetencyScores,
   computeStatus,
   generateAiSummary,
@@ -52,6 +53,18 @@ export default function CandidateDetail() {
     saveCandidates(next);
   }
 
+  function clearTestData() {
+    if (
+      !confirm(
+        `Clear all test data for ${email}? This deletes their Thomas status, declaration acceptance, and every MNext Challenge answer/comment so they can take the assessment again from scratch. This cannot be undone.`,
+      )
+    )
+      return;
+    clearCandidateTestData(email);
+    setCandidates(getCandidates());
+    setResponses(getResponses());
+  }
+
   if (!candidate) {
     return (
       <div className="space-y-4">
@@ -82,7 +95,15 @@ export default function CandidateDetail() {
           <h1 className="text-2xl font-bold">{candidate.name}</h1>
           <p className={`text-sm ${th.subtleText}`}>{candidate.email}</p>
         </div>
-        <span className={`inline-block px-3 py-1.5 rounded-full text-xs border ${th.pill}`}>{status}</span>
+        <div className="flex items-center gap-3">
+          <span className={`inline-block px-3 py-1.5 rounded-full text-xs border ${th.pill}`}>{status}</span>
+          <button
+            onClick={clearTestData}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-500 hover:text-amber-400"
+          >
+            <FiRotateCcw /> Clear test data
+          </button>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-5">

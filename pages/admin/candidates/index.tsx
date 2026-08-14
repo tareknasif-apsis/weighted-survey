@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { FiDownload, FiPlus, FiUpload, FiX } from "react-icons/fi";
+import { FiDownload, FiLink, FiPlus, FiRotateCcw, FiUpload, FiX } from "react-icons/fi";
 import {
   Candidate,
+  clearCandidateTestData,
   computeStatus,
   downloadCsv,
   genToken,
@@ -10,6 +11,7 @@ import {
   getResponses,
   parseCsv,
   saveCandidates,
+  setThomasUrlForAll,
   toCsv,
 } from "../../../lib/adminStore";
 import { useTheme } from "../../../contexts/ThemeContext";
@@ -129,24 +131,25 @@ export default function CandidatesPage() {
     );
   }
 
-  function resetAssessment(email: string) {
-    if (!confirm(`Reset Thomas + SJT progress for ${email}? This clears their declaration acceptance too.`))
+  function clearTestData(email: string) {
+    if (
+      !confirm(
+        `Clear all test data for ${email}? This deletes their Thomas status, declaration acceptance, and every MNext Challenge answer/comment so they can take the assessment again from scratch. This cannot be undone.`,
+      )
+    )
       return;
-    persist(
-      candidates.map((c) =>
-        c.email.toLowerCase() === email.toLowerCase()
-          ? {
-              ...c,
-              thomasStatus: "not_started",
-              thomasCompletedAt: undefined,
-              declarationAccepted: false,
-              declarationAcceptedAt: undefined,
-              sjtStartedAt: undefined,
-              sjtCompletedAt: undefined,
-            }
-          : c,
-      ),
+    clearCandidateTestData(email);
+    setCandidates(getCandidates());
+  }
+
+  function bulkSetThomasUrl() {
+    const url = window.prompt(
+      "Set this Thomas URL for every candidate:",
+      "https://secure.thomasinternational.net/LoginSelector.aspx",
     );
+    if (url === null) return;
+    setThomasUrlForAll(url);
+    setCandidates(getCandidates());
   }
 
   function removeCandidate(email: string) {
@@ -247,6 +250,9 @@ export default function CandidatesPage() {
           <button onClick={onExport} className={`${th.btnSecondary} inline-flex items-center gap-1.5`}>
             <FiDownload /> Export CSV
           </button>
+          <button onClick={bulkSetThomasUrl} className={`${th.btnSecondary} inline-flex items-center gap-1.5`}>
+            <FiLink /> Set Thomas URL for all
+          </button>
           <button onClick={openCreate} className={`${th.btnPrimary} inline-flex items-center gap-1.5`}>
             <FiPlus /> Add candidate
           </button>
@@ -304,8 +310,11 @@ export default function CandidatesPage() {
                     <button onClick={() => reissueLink(c.email)} className="text-blue-500 hover:text-blue-400">
                       Reissue link
                     </button>
-                    <button onClick={() => resetAssessment(c.email)} className="text-amber-500 hover:text-amber-400">
-                      Reset
+                    <button
+                      onClick={() => clearTestData(c.email)}
+                      className="inline-flex items-center gap-1 text-amber-500 hover:text-amber-400"
+                    >
+                      <FiRotateCcw /> Clear test data
                     </button>
                     <button onClick={() => removeCandidate(c.email)} className="text-red-500 hover:text-red-400">
                       Remove
