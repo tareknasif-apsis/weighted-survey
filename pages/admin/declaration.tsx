@@ -77,8 +77,8 @@ export default function DeclarationPage() {
 
       <div>
         <h2 className="font-bold mb-3">Acceptance audit log</h2>
-        <div className={`border rounded-xl overflow-hidden ${th.tableWrap}`}>
-          <table className="w-full text-sm">
+        <div className={`border rounded-xl overflow-x-auto ${th.tableWrap}`}>
+          <table className="w-full text-sm min-w-[560px]">
             <thead className={`text-xs uppercase tracking-wide ${th.tableHead}`}>
               <tr>
                 <th className="text-left px-4 py-3">Candidate</th>

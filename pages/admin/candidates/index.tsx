@@ -278,8 +278,8 @@ export default function CandidatesPage() {
         className={`w-full sm:w-96 ${th.input}`}
       />
 
-      <div className={`border rounded-xl overflow-hidden ${th.tableWrap}`}>
-        <table className="w-full text-sm">
+      <div className={`border rounded-xl overflow-x-auto ${th.tableWrap}`}>
+        <table className="w-full text-sm min-w-[720px]">
           <thead className={`text-xs uppercase tracking-wide ${th.tableHead}`}>
             <tr>
               <th className="text-left px-4 py-3">Name</th>
@@ -336,15 +336,18 @@ export default function CandidatesPage() {
 
       {showForm && (
         <div className={th.modalOverlay}>
-          <form onSubmit={onSubmitForm} className={`w-full max-w-md rounded-xl p-6 space-y-4 ${th.modalCard}`}>
+          <form
+            onSubmit={onSubmitForm}
+            className={`w-full max-w-md max-h-[90vh] overflow-y-auto rounded-xl p-5 sm:p-6 space-y-4 ${th.modalCard}`}
+          >
             <div className="flex items-center justify-between">
               <h2 className="font-bold text-lg">{editingEmail ? "Edit candidate" : "Add candidate"}</h2>
               <button type="button" onClick={() => setShowForm(false)} className={`${th.subtleText} hover:opacity-80`}>
                 <FiX />
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="sm:col-span-2">
                 <label className={`block text-xs font-semibold mb-1 ${th.subtleText}`}>Email *</label>
                 <input
                   required
@@ -354,7 +357,7 @@ export default function CandidatesPage() {
                   className={th.input}
                 />
               </div>
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <label className={`block text-xs font-semibold mb-1 ${th.subtleText}`}>Name *</label>
                 <input
                   required

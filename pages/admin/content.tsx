@@ -145,12 +145,12 @@ export default function ContentPage() {
               key={s.id}
               className={`border rounded-xl p-5 space-y-3 ${th.card}`}
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <span className={`text-xs font-mono ${th.mutedText}`}>
                   {s.id}
                 </span>
                 <div
-                  className={`flex items-center gap-3 text-xs ${th.subtleText}`}
+                  className={`flex items-center flex-wrap gap-3 text-xs ${th.subtleText}`}
                 >
                   <span>Timer (s)</span>
                   <input
