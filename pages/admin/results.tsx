@@ -7,6 +7,7 @@ import {
   SjtResponse,
   computeCompetencyScores,
   downloadCsv,
+  fmtScore,
   getCandidates,
   getCompetencies,
   getResponses,
@@ -36,12 +37,14 @@ export default function ResultsPage() {
           const summary = computeCompetencyScores(c.email, { responses });
           return { candidate: c, answered: mine.length, summary };
         })
-        .filter((r) => r.answered > 0),
+        .filter((r) => r.answered > 0)
+        .sort((a, b) => (b.summary.overallAverage ?? -Infinity) - (a.summary.overallAverage ?? -Infinity)),
     [candidates, responses],
   );
 
   function onExport() {
     const header = [
+      "Rank",
       "Email",
       "Name",
       "Language",
@@ -52,19 +55,20 @@ export default function ResultsPage() {
       ...scenarios.map((s) => `${s.id} Comment`),
     ];
     const rowsCsv: (string | number)[][] = [header];
-    rows.forEach(({ candidate, answered, summary }) => {
+    rows.forEach(({ candidate, answered, summary }, idx) => {
       const mine = responsesFor(candidate.email, responses);
       const answerCells = scenarios.map((s) => mine.find((r) => r.scenarioId === s.id)?.answerId || "");
       const commentCells = scenarios.map((s) => mine.find((r) => r.scenarioId === s.id)?.comment || "");
       rowsCsv.push([
+        idx + 1,
         candidate.email,
         candidate.name,
         candidate.language,
         answered,
-        summary.overallAverage ?? "",
+        summary.overallAverage !== null ? fmtScore(summary.overallAverage) : "",
         ...competencies.map((c) => {
           const cs = summary.competencies.find((x) => x.competencyId === c.id);
-          return cs?.evidenceCount ? cs.average : "";
+          return cs?.evidenceCount ? fmtScore(cs.average) : "";
         }),
         ...answerCells,
         ...commentCells,
@@ -91,6 +95,7 @@ export default function ResultsPage() {
         <table className="w-full text-sm min-w-[1100px]">
           <thead className={`text-xs uppercase tracking-wide ${th.tableHead}`}>
             <tr>
+              <th className="text-left px-4 py-3">Rank</th>
               <th className="text-left px-4 py-3">Candidate</th>
               <th className="text-left px-4 py-3">Answered</th>
               <th className="text-left px-4 py-3">Overall</th>
@@ -103,21 +108,22 @@ export default function ResultsPage() {
             </tr>
           </thead>
           <tbody>
-            {rows.map(({ candidate, answered, summary }) => (
+            {rows.map(({ candidate, answered, summary }, idx) => (
               <tr key={candidate.email} className={`border-t ${th.rowBorder} ${th.rowHover}`}>
+                <td className={`px-4 py-3 font-bold ${th.subtleText}`}>{idx + 1}</td>
                 <td className="px-4 py-3">
                   <div className="font-medium">{candidate.name}</div>
                   <div className={`text-xs ${th.mutedText}`}>{candidate.email}</div>
                 </td>
                 <td className={`px-4 py-3 ${th.subtleText}`}>{answered} / 8</td>
-                <td className="px-4 py-3 font-bold">{summary.overallAverage ?? "—"}</td>
+                <td className="px-4 py-3 font-bold">{fmtScore(summary.overallAverage)}</td>
                 {competencies.map((c) => {
                   const cs = summary.competencies.find((x) => x.competencyId === c.id);
                   return (
                     <td key={c.id} className={`px-4 py-3 ${th.subtleText}`}>
                       {cs?.evidenceCount ? (
                         <span title={`${cs.evidenceCount} evidence point(s)`}>
-                          {cs.average}
+                          {fmtScore(cs.average)}
                           {!cs.robust && <span className="text-amber-500 ml-1">*</span>}
                         </span>
                       ) : (
@@ -138,7 +144,7 @@ export default function ResultsPage() {
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={4 + competencies.length} className={`px-4 py-8 text-center text-sm ${th.mutedText}`}>
+                <td colSpan={5 + competencies.length} className={`px-4 py-8 text-center text-sm ${th.mutedText}`}>
                   No SJT responses recorded yet.
                 </td>
               </tr>

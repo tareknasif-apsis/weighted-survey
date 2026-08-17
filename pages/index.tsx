@@ -40,7 +40,7 @@ export default function Home() {
     ? "/sjt/complete"
     : answered > 0
       ? `/sjt/${`Q0${answered + 1}`.slice(-3).toLowerCase()}`
-      : "/sjt/start";
+      : "/sjt/instructions";
 
   return (
     <div className="space-y-6">
@@ -130,14 +130,12 @@ export default function Home() {
                 </div>
               </div>
               {candidate.thomasUrl ? (
-                <a
-                  href={candidate.thomasUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href="/thomas/instructions"
                   className="ml-3 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all transform hover:scale-105 flex-shrink-0"
                 >
                   {t("home.launch")}
-                </a>
+                </Link>
               ) : (
                 <span className="ml-3 text-xs text-gray-500 flex-shrink-0">
                   —

@@ -885,6 +885,10 @@ export function computeStatus(
   return "Exception";
 }
 
+export function fmtScore(n: number | null | undefined): string {
+  return n === null || n === undefined ? "—" : n.toFixed(1);
+}
+
 export type CompetencyScore = {
   competencyId: string;
   average: number;
@@ -993,7 +997,7 @@ export function generateAiSummary(
 
   const parts: string[] = [];
   parts.push(
-    `${candidate.name} completed ${responses.length} of 8 MNext Challenge scenarios with an overall judgement score of ${overallAverage ?? "—"}.`,
+    `${candidate.name} completed ${responses.length} of 8 MNext Challenge scenarios with an overall judgement score of ${fmtScore(overallAverage)}.`,
   );
   if (strongest.length) {
     parts.push(

@@ -11,6 +11,7 @@ import {
   clearCandidateTestData,
   computeCompetencyScores,
   computeStatus,
+  fmtScore,
   generateAiSummary,
   getCandidates,
   getCompetencies,
@@ -191,7 +192,7 @@ export default function CandidateDetail() {
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-bold">MNext Challenge — Scoring</h2>
           <div className="text-sm">
-            Overall: <span className="font-bold">{scoreSummary.overallAverage ?? "—"}</span>{" "}
+            Overall: <span className="font-bold">{fmtScore(scoreSummary.overallAverage)}</span>{" "}
             <span className={`text-xs ${th.mutedText}`}>(hidden from candidate)</span>
           </div>
         </div>
@@ -202,7 +203,7 @@ export default function CandidateDetail() {
               <div key={cs.competencyId} className={`border rounded-lg p-3 ${th.cardMuted}`}>
                 <div className="flex justify-between items-start">
                   <div className="text-sm font-semibold">{def?.name || cs.competencyId}</div>
-                  <div className="text-lg font-bold">{cs.evidenceCount ? cs.average : "—"}</div>
+                  <div className="text-lg font-bold">{cs.evidenceCount ? fmtScore(cs.average) : "—"}</div>
                 </div>
                 <div className={`text-[11px] mt-1 ${th.mutedText}`}>
                   {cs.evidenceCount} evidence point{cs.evidenceCount === 1 ? "" : "s"}

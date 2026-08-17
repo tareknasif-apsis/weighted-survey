@@ -60,6 +60,28 @@ const en = {
   "start.bilingual": "Bilingual",
   "start.pleaseAccept": "Please accept the declaration",
 
+  "thomasInfo.title": "Before You Begin: Thomas Assess",
+  "thomasInfo.p1":
+    "Thomas Assess is a short, standalone assessment hosted on Thomas International's own platform. It opens in a new browser tab.",
+  "thomasInfo.p2":
+    "Answer honestly and don't overthink your responses — there are no right or wrong answers, only your natural preferences.",
+  "thomasInfo.p3":
+    "Once you're done there, simply return to this tab. Your status will be updated by our team shortly after.",
+  "thomasInfo.launch": "Launch Thomas Assess",
+  "thomasInfo.noLink": "No Thomas link has been assigned to you yet. Please contact your coordinator.",
+  "thomasInfo.back": "Back to Dashboard",
+
+  "sjtInfo.title": "Before You Begin: MNext Challenge",
+  "sjtInfo.p1":
+    "You'll work through 8 short scenarios, each describing a workplace situation with a set of possible responses.",
+  "sjtInfo.p2":
+    "Pick the response that best reflects how you'd actually act. Each scenario is timed and answers can't be changed once submitted.",
+  "sjtInfo.p3":
+    "You can add an optional comment to explain your thinking. Next, you'll confirm a short integrity declaration before starting.",
+  "sjtInfo.p4":
+    "You'll get a notification one minute before your time runs out. If you don't submit in time, your answer will be auto-submitted as-is — there's no option to extend it.",
+  "sjtInfo.continue": "Continue",
+
   "level.start": "Start",
   "level.complete": "Complete",
   "level.operate": "Operate",
@@ -162,6 +184,28 @@ const ms: Record<TranslationKey, string> = {
   "start.timed": "Bermasa",
   "start.bilingual": "Dwibahasa",
   "start.pleaseAccept": "Sila terima perisytiharan",
+
+  "thomasInfo.title": "Sebelum Bermula: Thomas Assess",
+  "thomasInfo.p1":
+    "Thomas Assess ialah penilaian ringkas dan berasingan yang dihoskan di platform Thomas International sendiri. Ia akan dibuka dalam tab baharu.",
+  "thomasInfo.p2":
+    "Jawab dengan jujur dan jangan terlalu memikirkan jawapan anda — tiada jawapan betul atau salah, hanya keutamaan semula jadi anda.",
+  "thomasInfo.p3":
+    "Setelah selesai di sana, kembali sahaja ke tab ini. Status anda akan dikemas kini oleh pasukan kami sejurus selepas itu.",
+  "thomasInfo.launch": "Lancarkan Thomas Assess",
+  "thomasInfo.noLink": "Pautan Thomas belum ditetapkan untuk anda. Sila hubungi penyelaras anda.",
+  "thomasInfo.back": "Kembali ke Papan Pemuka",
+
+  "sjtInfo.title": "Sebelum Bermula: Cabaran MNext",
+  "sjtInfo.p1":
+    "Anda akan melalui 8 senario ringkas, setiap satu menggambarkan situasi tempat kerja dengan beberapa pilihan respons.",
+  "sjtInfo.p2":
+    "Pilih respons yang paling menggambarkan tindakan sebenar anda. Setiap senario bermasa dan jawapan tidak boleh diubah selepas dihantar.",
+  "sjtInfo.p3":
+    "Anda boleh menambah komen pilihan untuk menerangkan pemikiran anda. Seterusnya, anda akan mengesahkan perisytiharan integriti ringkas sebelum bermula.",
+  "sjtInfo.p4":
+    "Anda akan menerima notifikasi satu minit sebelum masa anda tamat. Jika anda tidak menghantar dalam masa yang ditetapkan, jawapan anda akan dihantar secara automatik seadanya — tiada pilihan untuk melanjutkan masa.",
+  "sjtInfo.continue": "Teruskan",
 
   "level.start": "Mula",
   "level.complete": "Selesai",
