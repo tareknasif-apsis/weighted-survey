@@ -13,6 +13,7 @@ import {
 } from "react-icons/fi";
 import { GiPartyPopper } from "react-icons/gi";
 import { HiSparkles } from "react-icons/hi2";
+import LevelProgress from "../../components/LevelProgress";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { getCurrentCandidate } from "../../lib/candidateAuth";
@@ -41,6 +42,8 @@ export default function Complete() {
 
   return (
     <div className="space-y-6">
+      <LevelProgress active="complete" />
+
       {/* Celebration Banner */}
       <div className="bg-gradient-to-br from-purple-500/30 to-pink-500/30 backdrop-blur border-2 border-purple-500/50 rounded-xl p-8 text-center overflow-hidden relative">
         <div className="absolute inset-0 opacity-20">

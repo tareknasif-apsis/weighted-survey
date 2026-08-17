@@ -13,6 +13,7 @@ import {
   saveScoring,
 } from "../../lib/adminStore";
 import { Scenario } from "../../data/scenarios";
+import levelDefs from "../../data/levels";
 import { useTheme } from "../../contexts/ThemeContext";
 import { adminTheme } from "../../lib/adminTheme";
 
@@ -140,14 +141,31 @@ export default function ContentPage() {
             competencies. Candidates never see this. Answer IDs are permanent
             regardless of on-screen display order.
           </p>
-          {scenarios.map((s) => (
-            <div
-              key={s.id}
-              className={`border rounded-xl p-5 space-y-3 ${th.card}`}
-            >
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <span className={`text-xs font-mono ${th.mutedText}`}>
-                  {s.id}
+          {levelDefs.map((level) => (
+            <div key={level.id} className="space-y-4">
+              <div
+                className={`flex items-center gap-2 px-1 pt-2 ${isDarkMode ? "text-emerald-300" : "text-emerald-700"}`}
+              >
+                <span
+                  className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold border ${
+                    isDarkMode ? "border-emerald-500/50 bg-emerald-500/15" : "border-emerald-400 bg-emerald-100"
+                  }`}
+                >
+                  {level.id}
+                </span>
+                <h3 className="text-sm font-bold uppercase tracking-wide">{level.name_en}</h3>
+                <span className={`text-xs ${th.mutedText}`}>({level.scenarioIds.join(", ")})</span>
+              </div>
+              {scenarios
+                .filter((s) => level.scenarioIds.includes(s.id))
+                .map((s) => (
+                  <div
+                    key={s.id}
+                    className={`border rounded-xl p-5 space-y-3 ${th.card}`}
+                  >
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <span className={`text-xs font-mono ${th.mutedText}`}>
+                        {s.id}
                 </span>
                 <div
                   className={`flex items-center flex-wrap gap-3 text-xs ${th.subtleText}`}
@@ -319,6 +337,8 @@ export default function ContentPage() {
                   );
                 })}
               </div>
+            </div>
+          ))}
             </div>
           ))}
         </div>

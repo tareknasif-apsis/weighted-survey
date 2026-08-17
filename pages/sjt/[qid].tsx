@@ -2,7 +2,9 @@ import { useRouter } from "next/router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FiCheck, FiLock, FiMessageSquare, FiTarget } from "react-icons/fi";
 import scenarios from "../../data/scenarios";
+import { isFirstInLevel, isLastInLevel, levelForScenario, nextLevel } from "../../data/levels";
 import Timer from "../../components/Timer";
+import LevelProgress from "../../components/LevelProgress";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { getCurrentCandidate } from "../../lib/candidateAuth";
@@ -107,6 +109,20 @@ export default function ScenarioPage() {
 
   if (!scenario) return <div>{t("qid.loading")}</div>;
   const currentScenario = scenario;
+
+  function computeNextRoute(): string {
+    const nextOrder = currentScenario.order + 1;
+    const next = scenarios.find((s) => s.order === nextOrder);
+    if (!next) return "/sjt/complete";
+    if (isLastInLevel(currentScenario.id)) {
+      const level = levelForScenario(currentScenario.id);
+      if (level && nextLevel(level)) {
+        return `/sjt/level-complete?level=${level.id}&next=${next.id}`;
+      }
+    }
+    return `/sjt/${next.id.toLowerCase()}`;
+  }
+
   function onSubmit() {
     if (!selected) return alert(t("qid.pleaseSelect"));
     const respKey = `resp_${currentScenario.id}`;
@@ -141,12 +157,10 @@ export default function ScenarioPage() {
       });
     }
 
-    // proceed to next or completion
-    const nextOrder = currentScenario.order + 1;
-    const next = scenarios.find((s) => s.order === nextOrder);
+    // proceed to next scenario, a level-complete transition, or the finish screen
+    const route = computeNextRoute();
     setTimeout(() => {
-      if (next) router.push(`/sjt/${next.id.toLowerCase()}`);
-      else router.push("/sjt/complete");
+      router.push(route);
     }, 400);
   }
 
@@ -161,11 +175,39 @@ export default function ScenarioPage() {
   if (!scenario) return <div>{t("qid.loading")}</div>;
 
   const progressPercent = (scenario.order / 8) * 100;
+  const currentLevel = levelForScenario(scenario.id);
+  const currentLevelName = currentLevel ? (lang === "en" ? currentLevel.name_en : currentLevel.name_ms) : "";
+  const currentLevelDesc = currentLevel
+    ? lang === "en"
+      ? currentLevel.description_en
+      : currentLevel.description_ms
+    : "";
 
   return (
     <div
       className={`space-y-6 ${isDarkMode ? "text-gray-100" : "text-gray-900"}`}
     >
+      <LevelProgress active={currentLevel?.key ?? "operate"} />
+
+      {isFirstInLevel(scenario.id) && currentLevel && (
+        <div
+          className={`rounded-xl p-4 border ${
+            isDarkMode
+              ? "bg-emerald-500/10 border-emerald-500/30"
+              : "bg-emerald-50 border-emerald-300"
+          }`}
+        >
+          <div
+            className={`text-xs font-bold uppercase tracking-wide mb-1 ${isDarkMode ? "text-emerald-300" : "text-emerald-700"}`}
+          >
+            {t("level.currentLevel", { level: currentLevel.id, name: currentLevelName })}
+          </div>
+          <p className={`text-sm leading-relaxed ${isDarkMode ? "text-gray-300" : "text-gray-700"}`}>
+            {currentLevelDesc}
+          </p>
+        </div>
+      )}
+
       {/* Progress Section */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
@@ -178,10 +220,7 @@ export default function ScenarioPage() {
             warningSeconds={scenario.warning_seconds ?? 60}
             onExpire={() => {
               onAutosave();
-              const nextOrder = scenario.order + 1;
-              const next = scenarios.find((s) => s.order === nextOrder);
-              if (next) router.push(`/sjt/${next.id.toLowerCase()}`);
-              else router.push("/sjt/complete");
+              router.push(computeNextRoute());
             }}
           />
         </div>

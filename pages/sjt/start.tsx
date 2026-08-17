@@ -4,6 +4,7 @@ import { FiCheck, FiClock, FiGlobe } from "react-icons/fi";
 import { GiConsoleController } from "react-icons/gi";
 import { MdBalance, MdRocketLaunch } from "react-icons/md";
 import scenarios from "../../data/scenarios";
+import LevelProgress from "../../components/LevelProgress";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { getCurrentCandidate } from "../../lib/candidateAuth";
@@ -42,6 +43,8 @@ export default function Start() {
 
   return (
     <div className="space-y-6">
+      <LevelProgress active="start" />
+
       {/* Info Banner */}
       <div
         className={`backdrop-blur rounded-xl p-5 border ${
